@@ -1,0 +1,122 @@
+```js
+// -----------------------------
+// 1. Create Database & Collection
+// -----------------------------
+use instituteDB
+db.createCollection("teachers")
+
+// -----------------------------
+// 2. Insert Documents (CREATE)
+// -----------------------------
+db.teachers.insertMany([
+{
+  name: "Dr. Amit Sharma",
+  qualifications: ["PhD", "M.Tech"],
+  department: { dept_id: 101, dept_name: "Computer Engineering" },
+  experience: 12,
+  salary: { basic: 80000, hra: 20000, bonus: 10000 },
+  date_of_joining: ISODate("2012-06-15"),
+  appointment_nature: "Permanent",
+  expertise: ["AI", "ML"]
+},
+{
+  name: "Prof. Neha Patil",
+  qualifications: ["M.Tech"],
+  department: { dept_id: 102, dept_name: "IT" },
+  experience: 5,
+  salary: { basic: 50000, hra: 15000, bonus: 5000 },
+  date_of_joining: ISODate("2019-08-10"),
+  appointment_nature: "Contract",
+  expertise: ["Web Dev", "DBMS"]
+},
+{
+  name: "Dr. Raj Mehta",
+  qualifications: ["PhD"],
+  department: { dept_id: 101, dept_name: "Computer Engineering" },
+  experience: 15,
+  salary: { basic: 90000, hra: 25000, bonus: 15000 },
+  date_of_joining: ISODate("2010-01-20"),
+  appointment_nature: "Permanent",
+  expertise: ["Cybersecurity", "Networks"]
+}
+])
+
+// -----------------------------
+// 3. CREATE using save()
+// -----------------------------
+db.teachers.save({
+  _id: 1,
+  name: "Prof. Sneha Kulkarni",
+  qualifications: ["M.E"],
+  department: { dept_id: 103, dept_name: "Electronics" },
+  experience: 7,
+  salary: { basic: 60000, hra: 18000, bonus: 7000 },
+  date_of_joining: ISODate("2017-07-01"),
+  appointment_nature: "Permanent",
+  expertise: ["VLSI"]
+})
+
+// -----------------------------
+// 4. READ (Retrieval Queries)
+// -----------------------------
+
+// All teachers
+db.teachers.find()
+
+// Experience > 10 (comparison)
+db.teachers.find({ experience: { $gt: 10 } })
+
+// Permanent teachers in Computer Engineering (logical)
+db.teachers.find({
+  "department.dept_name": "Computer Engineering",
+  appointment_nature: "Permanent"
+})
+
+// Salary > 70000 OR experience < 6
+db.teachers.find({
+  $or: [
+    { "salary.basic": { $gt: 70000 } },
+    { experience: { $lt: 6 } }
+  ]
+})
+
+// NOT in IT department
+db.teachers.find({
+  "department.dept_name": { $ne: "IT" }
+})
+
+// Projection
+db.teachers.find({}, { name: 1, expertise: 1, _id: 0 })
+
+// -----------------------------
+// 5. UPDATE
+// -----------------------------
+
+// Update salary
+db.teachers.updateOne(
+  { name: "Prof. Neha Patil" },
+  { $set: { "salary.basic": 55000 } }
+)
+
+// Increase experience
+db.teachers.updateMany(
+  {},
+  { $inc: { experience: 1 } }
+)
+
+// Add expertise
+db.teachers.updateOne(
+  { name: "Dr. Amit Sharma" },
+  { $push: { expertise: "Deep Learning" } }
+)
+
+// -----------------------------
+// 6. DELETE
+// -----------------------------
+
+// Delete one teacher
+db.teachers.deleteOne({ name: "Dr. Raj Mehta" })
+
+// Delete all contract teachers
+db.teachers.deleteMany({ appointment_nature: "Contract" })
+```

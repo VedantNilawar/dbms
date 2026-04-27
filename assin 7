@@ -1,0 +1,93 @@
+// Use database
+use sample
+
+// -----------------------------
+// 1. Create Collections
+// -----------------------------
+db.createCollection("faculty")
+db.createCollection("courses")
+
+// -----------------------------
+// 2. Insert Data into faculty
+// -----------------------------
+db.faculty.insertMany([
+  { facultyName: "Rahul Sharma", exp: 8, designation: "Assistant Professor", facultyDept: "CE" },
+  { facultyName: "Neha Verma", exp: 12, designation: "Associate Professor", facultyDept: "CE" },
+  { facultyName: "Amit Kulkarni", exp: 5, designation: "Assistant Professor", facultyDept: "IT" },
+  { facultyName: "Suresh Patil", exp: 15, designation: "Professor", facultyDept: "CE" },
+  { facultyName: "Priya Deshmukh", exp: 7, designation: "Assistant Professor", facultyDept: "IT" },
+  { facultyName: "Kiran Joshi", exp: 10, designation: "Associate Professor", facultyDept: "CE" }
+])
+
+// -----------------------------
+// 3. Insert Data into courses
+// -----------------------------
+db.courses.insertMany([
+  { courseTitle: "Database Systems", dept: "CE", creditHours: 3 },
+  { courseTitle: "Operating Systems", dept: "CE", creditHours: 4 },
+  { courseTitle: "Computer Networks", dept: "CE", creditHours: 3 },
+  { courseTitle: "Artificial Intelligence", dept: "IT", creditHours: 3 },
+  { courseTitle: "Machine Learning", dept: "IT", creditHours: 4 },
+  { courseTitle: "Data Structures", dept: "CE", creditHours: 4 },
+  { courseTitle: "Theory of Computation", dept: "CE", creditHours: 3 },
+  { courseTitle: "Compiler Design", dept: "IT", creditHours: 3 },
+  { courseTitle: "Software Engineering", dept: "IT", creditHours: 2 },
+  { courseTitle: "Cloud Computing", dept: "IT", creditHours: 3 }
+])
+
+// -----------------------------
+// 4. Aggregation Pipeline
+// -----------------------------
+db.courses.aggregate([
+
+  // 🔹 Stage 1: Filter only CE department courses
+  {
+    $match: { dept: "CE" }
+  },
+
+  // 🔹 Stage 2: Join with faculty collection
+  {
+    $lookup: {
+      from: "faculty",              // collection to join
+      localField: "dept",           // field in courses
+      foreignField: "facultyDept",  // field in faculty
+      as: "facultyDetails"          // output array field
+    }
+  },
+
+  // 🔹 Stage 3: Add new field courseLevel (Basic / Advanced)
+  {
+    $addFields: {
+      courseLevel: {
+        $cond: {
+          if: { $gte: ["$creditHours", 4] }, // if creditHours >= 4
+          then: "Advanced",                  // assign Advanced
+          else: "Basic"                      // otherwise Basic
+        }
+      }
+    }
+  },
+
+  // 🔹 Stage 4: Select only required fields
+  {
+    $project: {
+      courseTitle: 1,
+      dept: 1,
+      creditHours: 1,
+      courseLevel: 1,
+      facultyDetails: 1,
+      _id: 0
+    }
+  },
+
+  // 🔹 Stage 5: Sort by creditHours (descending)
+  {
+    $sort: { creditHours: -1 }
+  },
+
+  // 🔹 Stage 6: Limit output to 3 documents
+  {
+    $limit: 3
+  }
+
+])

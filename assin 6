@@ -1,0 +1,116 @@
+```js
+// -----------------------------
+// 1. Create Database & Collections
+// -----------------------------
+use marketplaceDB
+
+db.createCollection("products")
+db.createCollection("orders")
+
+// -----------------------------
+// 2. Insert Sample Data
+// -----------------------------
+db.products.insertMany([
+{
+  product_id: 1,
+  name: "iPhone 14",
+  category: "Electronics",
+  price: 80000,
+  brand: "Apple",
+  description: "Latest smartphone",
+  tags: ["mobile", "electronics"]
+},
+{
+  product_id: 2,
+  name: "Nike Shoes",
+  category: "Footwear",
+  price: 5000,
+  brand: "Nike",
+  description: "Running shoes",
+  tags: ["shoes", "sports"]
+}
+])
+
+db.orders.insertMany([
+{
+  order_id: 101,
+  customer_name: "Rahul",
+  product_id: 1,
+  quantity: 1,
+  total_amount: 80000,
+  order_date: ISODate("2025-03-10")
+},
+{
+  order_id: 102,
+  customer_name: "Priya",
+  product_id: 2,
+  quantity: 2,
+  total_amount: 10000,
+  order_date: ISODate("2025-03-15")
+}
+])
+
+// -----------------------------
+// 3. Indexes on PRODUCTS
+// -----------------------------
+
+// Single Field Index
+db.products.createIndex({ name: 1 })
+
+// Compound Index (filter + sort)
+db.products.createIndex({ category: 1, price: -1 })
+
+// Text Index (search)
+db.products.createIndex({ name: "text", description: "text" })
+
+// Unique Index
+db.products.createIndex({ product_id: 1 }, { unique: true })
+
+// Sparse Index (optional field)
+db.products.createIndex({ brand: 1 }, { sparse: true })
+
+// Hashed Index (equality / sharding)
+db.products.createIndex({ product_id: "hashed" })
+
+// Multikey Index (array field)
+db.products.createIndex({ tags: 1 })
+
+// -----------------------------
+// 4. Indexes on ORDERS
+// -----------------------------
+
+// Single Field Index
+db.orders.createIndex({ customer_name: 1 })
+
+// Compound Index
+db.orders.createIndex({ product_id: 1, order_date: -1 })
+
+// Unique Index
+db.orders.createIndex({ order_id: 1 }, { unique: true })
+
+// TTL Index (auto delete old orders)
+db.orders.createIndex(
+  { order_date: 1 },
+  { expireAfterSeconds: 2592000 } // 30 days
+)
+
+// Partial Index (only high-value orders)
+db.orders.createIndex(
+  { total_amount: 1 },
+  { partialFilterExpression: { total_amount: { $gt: 5000 } } }
+)
+
+// Sparse Index
+db.orders.createIndex({ discount: 1 }, { sparse: true })
+
+// -----------------------------
+// 5. View Indexes
+// -----------------------------
+db.products.getIndexes()
+db.orders.getIndexes()
+
+// -----------------------------
+// 6. Drop Index (if required)
+// -----------------------------
+db.products.dropIndex("name_1")
+```
